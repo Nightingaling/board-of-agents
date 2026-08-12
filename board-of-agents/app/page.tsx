@@ -108,7 +108,7 @@ export default function Home() {
 
   return (
     <main className="board-shell">
-      <header className="board-header"><div><p className="eyebrow">BOARD / 01</p><h1>Four views. One clear move.</h1></div><p className="header-note">A live leadership room for the week ahead.</p></header>
+      <header className="board-header"><div><p className="eyebrow">BOARD / 01</p><h1>Welcome to Board Of Agents!</h1><h2 className="board-tagline">Four views. One clear move.</h2></div><p className="header-note">A live leadership room for the week ahead.</p></header>
       <section className="board-grid">
         <form className="brief-panel" onSubmit={(event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void runBoard(industry, metrics); }}>
           <div><p className="eyebrow">Brief the room</p><h2>What should the board know?</h2></div>
