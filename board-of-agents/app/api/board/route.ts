@@ -44,20 +44,43 @@ async function* fallbackTokens(text: string) {
   for (const token of text.split(/(\s+)/)) { yield token; await new Promise((resolve) => setTimeout(resolve, 14)); }
 }
 
-function trimWords(text: string, maxWords: number) {
+function trimWordsPreserveSentence(text: string, maxWords: number) {
   const words = [...text.matchAll(/\S+/g)];
   if (words.length <= maxWords) return text;
   const end = words[maxWords - 1].index! + words[maxWords - 1][0].length;
-  return text.slice(0, end);
+  const slice = text.slice(0, end);
+  const sentenceEndMatches = [...slice.matchAll(/[.!?][\"']?(?=\s|$)/g)];
+  if (sentenceEndMatches.length) {
+    const last = sentenceEndMatches[sentenceEndMatches.length - 1];
+    const cutIndex = last.index! + last[0].length;
+    const trimmed = slice.slice(0, cutIndex).trimEnd();
+    if (trimmed.length) return trimmed;
+  }
+  // If we didn't find a sentence end inside the slice, look ahead a short window
+  // for the next sentence-ending punctuation so we don't cut mid-sentence when
+  // the punctuation appears shortly after the word limit.
+  const lookaheadChars = 300;
+  const rest = text.slice(end, end + lookaheadChars);
+  const nextMatch = rest.match(/[.!?][\"']?(?=\s|$)/);
+  if (nextMatch && nextMatch.index !== undefined) {
+    const cutIndex = end + nextMatch.index + nextMatch[0].length;
+    const extended = text.slice(0, cutIndex).trimEnd();
+    if (extended.length) return extended;
+  }
+  return slice;
 }
 
 async function* limitedTokens(tokens: AsyncIterable<string>, maxWords: number) {
   let text = "";
   for await (const token of tokens) {
-    const next = trimWords(text + token, maxWords);
+    const next = trimWordsPreserveSentence(text + token, maxWords);
     if (next !== text) yield next.slice(text.length);
     text = next;
-    if (text.split(/\s+/).filter(Boolean).length >= maxWords) return;
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    const endsWithSentence = /[.!?]["']?\s*$/.test(text.trim());
+    if (wordCount >= maxWords && endsWithSentence) return;
+    // Allow a small overflow to wait for a punctuation if it arrives shortly after
+    if (wordCount >= maxWords + 20) return;
   }
 }
 
@@ -65,7 +88,8 @@ function trimSynthesis(text: string) {
   const bulletStarts = [...text.matchAll(/^\s*(?:[-*•]|\d+[.)])\s+/gm)];
   const fifthBullet = bulletStarts[5];
   const fiveBullets = fifthBullet ? text.slice(0, fifthBullet.index) : text;
-  return trimWords(fiveBullets, 120);
+  // Prefer ending at a sentence boundary when trimming the synthesis so bullets aren't cut mid-sentence.
+  return trimWordsPreserveSentence(fiveBullets, 160);
 }
 
 async function* limitedSynthesisTokens(tokens: AsyncIterable<string>) {
@@ -74,8 +98,10 @@ async function* limitedSynthesisTokens(tokens: AsyncIterable<string>) {
     const next = trimSynthesis(text + token);
     if (next !== text) yield next.slice(text.length);
     text = next;
-    if ([...text.matchAll(/^\s*(?:[-*•]|\d+[.)])\s+/gm)].length >= 5 && /\n\s*(?:[-*•]|\d+[.)])\s+/.test(text)) return;
-    if (text.split(/\s+/).filter(Boolean).length >= 120) return;
+    const bulletCount = [...text.matchAll(/^\s*(?:[-*•]|\d+[.)])\s+/gm)].length;
+    const endsWithSentence = /[.!?]["']?\s*$/.test(text.trim());
+    if (bulletCount >= 5 && endsWithSentence) return;
+    if (text.split(/\s+/).filter(Boolean).length >= 160) return;
   }
 }
 
@@ -85,10 +111,13 @@ async function* openAiTokens(system: string, user: string) {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    signal: AbortSignal.timeout(5500),
+    signal: AbortSignal.timeout(10000),
     body: JSON.stringify({ model: process.env.OPENAI_MODEL ?? "gpt-4o-mini", stream: true, temperature: 0.7, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
   });
-  if (!response.ok || !response.body) throw new Error(`OpenAI request failed (${response.status}): ${await response.text()}`);
+  if (!response.ok || !response.body) {
+    const text = await response.text();
+    throw new Error(`OpenAI request failed (${response.status}): ${text}`);
+  }
   const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = "";
   try {
     while (true) {

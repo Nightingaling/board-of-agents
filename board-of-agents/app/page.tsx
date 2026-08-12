@@ -148,10 +148,25 @@ function DissentPanel({ bubbles }: { bubbles: Bubble[] }) {
   ] as const;
   const visiblePairs = pairs.filter(([left, right]) => available.get(left)?.status === "done" && available.get(right)?.status === "done");
   if (!visiblePairs.length) return <div className="dissent-panel dissent-empty">Dissent will surface as advisors complete their views.</div>;
-  return <div className="dissent-panel"><div className="dissent-heading"><span aria-hidden="true">!</span><strong>Preserved disagreement</strong></div>{visiblePairs.map(([left, right, label]) => <div className="dissent-item" key={label}><strong>{label}</strong><p><span>{summarize(available.get(left)?.text ?? "")}</span><span>{summarize(available.get(right)?.text ?? "")}</span></p></div>)}</div>;
+  return <div className="dissent-panel"><div className="dissent-heading"><span aria-hidden="true">!</span><strong>Preserved disagreement</strong></div>{visiblePairs.map(([left, right, label]) => <div className="dissent-item" key={label}><strong>{label}</strong><p><span><ShowMore text={available.get(left)?.text ?? ""} /></span><span><ShowMore text={available.get(right)?.text ?? ""} /></span></p></div>)}</div>;
 }
 
-function summarize(text: string) {
-  const sentence = text.split(/[.!?]\s/)[0] ?? text;
-  return sentence.length > 130 ? `${sentence.slice(0, 127)}...` : sentence;
+function ShowMore({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  if (!text) return <span className="placeholder">Waiting for advisor</span>;
+  const match = text.match(/.*?[.!?][\"']?(?=\s|$)/);
+  const firstSentence = match ? match[0] : text;
+  const isTruncated = firstSentence.trim().length < text.trim().length;
+  const previewText = open ? text : isTruncated ? firstSentence.replace(/[.!?]$/, "") : firstSentence;
+  return (
+    <span className={`showmore-wrap${open ? " open" : ""}`}>
+      <span className="showmore-body" title={open ? undefined : text}>
+        {previewText}{isTruncated && (
+          <button type="button" className="show-more-dot" onClick={() => setOpen((s) => !s)} aria-expanded={open} aria-label={open ? "Collapse text" : "Show more"}>
+            …
+          </button>
+        )}
+      </span>
+    </span>
+  );
 }

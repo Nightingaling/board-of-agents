@@ -62,6 +62,13 @@ button:disabled { cursor: wait; opacity: .65; transform: none; }
 .dissent-empty { color: #a43d2b; font-size: 12px; }
 .dissent-heading { align-items: center; display: flex; font-size: 12px; gap: 8px; text-transform: uppercase; letter-spacing: .08em; }.dissent-heading span { align-items: center; background: #b42318; border-radius: 50%; color: white; display: inline-flex; font-weight: 700; height: 17px; justify-content: center; width: 17px; }
 .dissent-item { border-top: 1px solid #efc8c3; margin-top: 11px; padding-top: 10px; }.dissent-item > strong { display: block; font-size: 11px; }.dissent-item p { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; margin: 6px 0 0; }.dissent-item p span { font-size: 11px; line-height: 1.45; }
+.showmore-wrap { display: inline; max-width: 100%; }
+.showmore-body { display: inline; max-width: 100%; overflow: hidden; transition: max-height .24s ease, opacity .24s ease; white-space: pre-wrap; }
+.showmore-wrap:not(.open) .showmore-body { max-height: 3.4em; }
+.showmore-wrap.open .showmore-body { max-height: 1000px; }
+.show-more-dot { background: transparent; border: 0; color: inherit; cursor: pointer; display: inline; font-size: 12px; line-height: 1; padding: 0; margin: 0 0 0 2px; opacity: .75; transition: transform .2s ease, opacity .2s ease; }
+.show-more-dot:hover { transform: translateY(-1px); opacity: 1; }
+.show-more-dot:focus-visible { outline: 1px dashed currentColor; outline-offset: 2px; }
 .retry-panel { align-items: center; background: #fff1f0; border: 1px solid #f1b7b1; color: #7f1d1d; display: flex; font-size: 12px; justify-content: space-between; margin-top: 14px; padding: 10px 12px; }.retry-panel button { background: #b42318; font-size: 11px; margin: 0; padding: 9px 11px; }.retry-panel button:hover { background: #8f1d16; }
 .bubble-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding-top: 16px; }
 .bubble { border: 1px solid var(--line); border-radius: 3px; min-height: 178px; padding: 18px; animation: reveal .45s ease both; }
