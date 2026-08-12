@@ -89,7 +89,7 @@ OPENAI_MODEL=gpt-4o-mini
 
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
-| `OPENAI_API_KEY` | No | None | Enables live OpenAI advisor and synthesis responses. |
+| `OPENAI_API_KEY` | Yes for AI analysis | None | Enables live OpenAI advisor and synthesis responses. |
 | `OPENAI_MODEL` | No | `gpt-4o-mini` | Selects the OpenAI chat model used by every agent. |
 
 Do not expose `OPENAI_API_KEY` in client-side code or commit `.env.local`. Environment files are ignored by Git.
