@@ -1,6 +1,6 @@
 # Board Of Agents
 
-<img width="2048" height="2048" alt="Project Image" src="https://github.com/user-attachments/assets/fe60dd2a-62c8-4e30-b2e6-64c5ab6e1c46" />
+<img width="2752" height="1536" alt="Project Image" src="https://github.com/user-attachments/assets/42768919-6234-4c24-ab40-52224df9a3b1" />
 
 
 Board Of Agents is an AI-powered decision-support application that turns weekly business metrics into actionable leadership guidance. A virtual CFO, CMO, COO, and Head of Strategy analyze the same brief in parallel. A Chief of Staff then combines their perspectives into a concise executive summary while preserving meaningful disagreement.
